@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Aislans Musikschule</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css')}}">
+</head>
+<body>
+
+    <div class="form-container">
+        <h1>Schulanmeldung</h1>
+
+        <form method="POST" id="schoolForm">
+           <!--name-->
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" placeholder="Ihr Name" required>
+            </div>
+            <!--email-->
+            <div class="form-group">
+                <label for="email">E-Mail</label>
+                <input type="email" id="email" name="email" placeholder="Ihre E-Mail-Adresse" required>
+            </div>
+            <!--telefonnumer-->
+            <div class="form-group">
+                <label for="phone">Handynummer</label>
+                <input type="tel" id="phone" name="phone" placeholder="z.B. 0123456789" pattern="[0-9]{8,15}" title="Nur Zahlen, 8 bis 15 Ziffern" required>
+            </div>
+            <!--select pricipal-->
+            <div class="form-group">
+                <label for="optionSelect">Bitte wählen Sie eine Option</label>
+                <select id="optionSelect" name="optionSelect" required>
+                    <option value="">Bitte auswählen</option>
+                    <option value="kurse">Kurse</option>
+                    <option value="musiktherapie">Musiktherapie</option>
+                    <option value="frueherziehung">Musikalische Früherziehung</option>
+                    <option value="musikzauber">Musikzauber für kleine Entdecker</option>
+                </select>
+            </div>
+
+            <!--subopcao kurse-->
+            <div class="form-group hidden" id="kurseGroup">
+                <label for="kurse">Wählen Sie Ihren Kurs</label>
+                <select id="kurse" name="kurse">
+                    <option value="">Bitte auswählen</option>
+                    <option value="klavier">Klavier / Keyboard</option>
+                    <option value="gitarre">Gitarre (Akustisch)</option>
+                    <option value="e-gitarre">E-Gitarre</option>
+                    <option value="schlagzeug">Schlagzeug</option>
+                    <option value="geige">Geige / Violine</option>
+                    <option value="gesang">Gesang / Stimmbildung</option>
+                    <option value="flote">Flöte</option>
+                    <option value="ukulele">Ukulele</option>
+                </select>
+            </div>
+
+            <!--name des patienten-->
+            <div class="form-group hidden" id="patientNameGroup">
+                <label for="patientName">Name des Patienten</label>
+                <input type="text" id="patientName" name="patientName" placeholder="Name des Patienten">
+            </div>
+            
+            <!--para quem (musiketherapie)-->
+            <div class="form-group hidden" id="forWhomGroup">
+                <label for="forWhom">Für wen?</label>
+                <select id="forWhom" name="forWhom">
+                    <option value="">Bitte auswählen</option>
+                    <option value="selbst">Für mich selbst</option>
+                    <option value="andere">Für eine andere Person</option>
+                </select>
+            </div>
+            <!--name des baby-->
+            <div class="form-group hidden" id="babyNameGroup">
+                <label for="babyName">Name des Kindes</label>
+                <input type="text" id="babyName" name="babyName" placeholder="Name des Kindes">
+            </div>
+            <!--Idade-->
+            <div class="form-group hidden" id="babyAgeGroup">
+                <label for="babyAge">Alter des Kindes</label>
+                <input type="number" id="babyAge" name="babyAge" placeholder="Alter in Jahren" min="0">
+            </div>
+
+            <!--mensagem-->
+            <div class="form-group">
+                <label for="message">Nachricht</label>
+                <textarea id="message" name="message" placeholder="Ihre Nachricht"></textarea>
+            </div>
+
+            <button type="submit" id="submitBtn">Absenden</button>
+
+        </form>
+
+        <!--Mensagem de sucesso-->
+        <div id="successMessage" class="success-message hidden">
+            <strong>Formular erfolgreich gesendet!</strong><br>
+            Vielen Dank. Wir werden Sie bald kontaktieren.
+        </div>
+        
+    </div>
+    <script>
+        const optionSelect = document.getElementById("optionSelect");
+
+        const kurseGroup = document.getElementById("kurseGroup");
+        const patientNameGroup = document.getElementById("patientNameGroup");
+        const forWhomGroup = document.getElementById("forWhomGroup");
+        const babyNameGroup = document.getElementById("babyNameGroup");
+        const babyAgeGroup = document.getElementById("babyAgeGroup");
+
+        const form = document.getElementById("schoolForm");
+        const button = document.getElementById("submitBtn");
+        const successMessage = document.getElementById("successMessage");
+        optionSelect.addEventListener("change", () => {
+            const value = optionSelect.value;
+
+            // esconder todos inicialmente
+            kurseGroup.classList.remove("show");
+            patientNameGroup.classList.remove("show");
+            forWhomGroup.classList.remove("show");
+            babyNameGroup.classList.remove("show");
+            babyAgeGroup.classList.remove("show");
+
+            if (value === "kurse") {
+                kurseGroup.classList.add("show");
+            } else if (value === "musiktherapie") {
+                patientNameGroup.classList.add("show");
+                forWhomGroup.classList.add("show");
+            } else if (value === "frueherziehung" || value === "musikzauber") {
+                babyNameGroup.classList.add("show");
+                babyAgeGroup.classList.add("show");
+            }
+        });
+        //subimt: trava botao, esconde formulario, mostra mensgame
+        form.addEventListener("submit", (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+
+            button.disabled = true;
+            button.innerText = "Wird gesendet...";
+
+            fetch("/", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    form.reset();
+
+                    form.classList.add("hidden");
+                    successMessage.classList.remove("hidden");
+                }else {
+                    button.disabled = false;
+                    button.innerText = "Absenden";
+                    alert("Fehler beim Senden des Formulars");
+                }
+            })
+        .catch(error => {
+            console.error("Fehler:", error);
+            button.disabled = false;
+            button.innerText = "Absenden";
+            alert("Fehler beim Senden des Formulars");
+        });
+        })
+    </script>
+</body>
+</html>
